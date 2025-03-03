@@ -29,10 +29,14 @@ public class Arms implements Mechanism {
     public double grabPosition = 0.55;
     public double collectorPosition = 0;
 
-    public double balance = 0.06;
+    public double bigBalance = 0.06;
+    public double littleBalance = 0.05;
 
     public double timer = 0;
     public int    timerValue = 100;
+
+    public double balanceTimer = 0;
+    public int    balanceTimerValue = 20;
 
     public Arms(Telemetry telemetry, ElapsedTime time, DcMotor bigArmMotor, DcMotor littleArmMotor, Servo grabServo, Servo collectorServo, IMU imu) {
         this.telemetry = telemetry;
@@ -48,14 +52,23 @@ public class Arms implements Mechanism {
         littleArmMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
-    public void gamepadPower(Gamepad gamepad, double precision, boolean armBlock) {
+    public void gamepadPower(Gamepad gamepad, Gamepad gamepad2, double precision, boolean armBlock) {
+
+        if (balanceTimer == 0 && gamepad2.dpad_down) {
+            bigBalance = -bigBalance;
+            balanceTimer = balanceTimerValue;
+        }
+        if (balanceTimer == 0 && gamepad2.dpad_up) {
+            littleBalance = -littleBalance;
+            balanceTimer = balanceTimerValue;
+        }
 
         if (!armBlock) {
             bigArmPower = -gamepad.right_stick_y;
 
             bigArmPower *= precision;
 
-            bigArmPower += balance;
+            bigArmPower += bigBalance;
         }
 
         littleArmPower = 0;
@@ -64,9 +77,9 @@ public class Arms implements Mechanism {
         } else if (gamepad.dpad_up) {
             littleArmPower = -0.4;
         }
-        littleArmPower += 0.05;
+        littleArmPower += littleBalance;
 
-        if (timer == 0 && (gamepad.a || gamepad.x || gamepad.b || gamepad.y)) {
+        if (timer == 0 && (gamepad.circle || gamepad.cross || gamepad.square || gamepad.triangle)) {
             if (collectorPosition == 1) {
                 collectorPosition = 0;
             } else {
@@ -84,6 +97,9 @@ public class Arms implements Mechanism {
         if (timer>0) {
             timer -= 1;
         }
+        if (balanceTimer > 0) {
+            balanceTimer -= 1;
+        }
     }
 
     public void move() {
@@ -94,6 +110,8 @@ public class Arms implements Mechanism {
         collectorServo.setPosition(collectorPosition);
 
         telemetry.addLine("### Mouvements bras ###");
+        telemetry.addData("Big balance", bigBalance);
+        telemetry.addData("Little balance", littleBalance);
         telemetry.addData("Big arm power", bigArmPower);
         telemetry.addData("Little Arm power", littleArmPower);
         telemetry.addData("Grab position", grabPosition);

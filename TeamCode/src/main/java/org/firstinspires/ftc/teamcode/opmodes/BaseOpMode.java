@@ -139,7 +139,7 @@ public class BaseOpMode extends OpMode {
 
         // moteur deplacement debut
         wheels.gamepadPower(gamepad1, precisionValues[precisionI]);
-        arms.gamepadPower(gamepad1, precisionValues[precisionI], armBlock);
+        arms.gamepadPower(gamepad1, gamepad2, precisionValues[precisionI], armBlock);
         // moteur deplacement fin
 
         if (timer > 0) {

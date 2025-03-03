@@ -19,8 +19,8 @@ import java.util.concurrent.TimeUnit;
 
 public class LogReader extends OpMode {
 
-    public static final String DIR_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/logs/";
-    //public static final String DIR_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/java/src/org/firstinspires/ftc/teamcode/logs/";
+    //public static final String DIR_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/logs/";
+    public static final String DIR_PATH = Environment.getExternalStorageDirectory().getAbsolutePath() + "/FIRST/java/src/org/firstinspires/ftc/teamcode/logs/";
 
     private final String                   logFile;
     public        Mechanism[]              mechanisms;
