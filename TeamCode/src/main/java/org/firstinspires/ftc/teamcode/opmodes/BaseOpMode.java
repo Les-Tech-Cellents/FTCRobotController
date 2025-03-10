@@ -64,7 +64,7 @@ public class BaseOpMode extends OpMode {
     private int precisionI = 1;
     private double[] precisionValues = {0.4, 0.6, 0.7, 1};
     private int timer = 0;
-    private int timerValue = 1000;
+    private int timerValue = 50;
     private boolean armBlock = false;
     private RobotLogger logger;
 
@@ -113,6 +113,7 @@ public class BaseOpMode extends OpMode {
     public void start() {
         time.reset();
         imu.resetYaw();
+        arms.resetEncoders();
     }
 
     @Override
