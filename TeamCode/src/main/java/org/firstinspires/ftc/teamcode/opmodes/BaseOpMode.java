@@ -136,6 +136,10 @@ public class BaseOpMode extends OpMode {
                 armBlock = !armBlock;
                 timer = timerValue;
             }
+            
+            if (this.gamepad2.left_trigger >= 0.3 && this.gamepad2.left_stick_button) {
+                arms.resetEncoders();
+            }
         }
 
         // moteur deplacement debut

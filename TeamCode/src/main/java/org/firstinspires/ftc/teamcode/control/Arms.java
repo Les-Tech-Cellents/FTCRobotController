@@ -306,9 +306,9 @@ public class Arms implements Mechanism {
     // TODO Take the right values
     public enum BigArmPosition {
         REST(0),
-        OBSERVABLE_ZONE(1535), //
+        OBSERVABLE_ZONE(843), //
         LOW_BASKET(2300), //
-        HIGH_CHAMBER(2500), //
+        HIGH_CHAMBER(2373), //
         OTHER(0);
 
         public final int position;
