@@ -1,7 +1,5 @@
 package org.firstinspires.ftc.teamcode.opmodes;
 
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import com.qualcomm.robotcore.hardware.Blinker;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
@@ -10,18 +8,15 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 import org.firstinspires.ftc.teamcode.logging.LogReader;
 import org.firstinspires.ftc.teamcode.control.Mechanism;
 import org.firstinspires.ftc.teamcode.control.Wheels;
-import org.firstinspires.ftc.teamcode.control.Arms;
+import org.firstinspires.ftc.teamcode.control.Storage;
 
-@Autonomous(name="Auto Test")
-public class AutoOpMode extends LogReader {
-    private static String logFile = "test_log.txt";
-
+public class BaseAutoOpMode extends LogReader {
     private Wheels wheels;
-    private Arms arms;
+    private Storage storage;
 
     private ElapsedTime time;
 
-    public AutoOpMode() {
+    public BaseAutoOpMode(String logFile) {
         super(logFile);
     }
 
@@ -39,17 +34,16 @@ public class AutoOpMode extends LogReader {
                 imu
         );
 
-        arms = new Arms(telemetry, time,
-                hardwareMap.get(DcMotor.class, "MotorBras1"),
-                hardwareMap.get(DcMotor.class, "MotorBras2"),
-                hardwareMap.get(Servo.class, "servoPince"),
-                hardwareMap.get(Servo.class, "servoTourniquet"),
+        storage = new Storage(telemetry, time,
+                hardwareMap.get(Servo.class, "servoCollector"),
+                hardwareMap.get(Servo.class, "servoDrum"),
+                hardwareMap.get(Servo.class, "servoLatch"),
                 imu
         );
 
         this.mechanisms = new Mechanism[]{
                 this.wheels,
-                this.arms
+                this.storage
         };
     }
 }
