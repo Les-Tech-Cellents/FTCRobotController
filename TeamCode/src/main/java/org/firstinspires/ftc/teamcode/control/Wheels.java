@@ -40,8 +40,8 @@ public class Wheels implements Mechanism {
         this.rightWheelsMotor = rightWheelsMotor;
         this.imu = imu;
 
-        leftWheelsMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        rightWheelsMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftWheelsMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightWheelsMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         leftWheelsMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightWheelsMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
@@ -59,7 +59,7 @@ public class Wheels implements Mechanism {
             if (timer == 0) {
                 //leftWheelsMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
                 //rightWheelsMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.FLOAT);
-                if (gamepad.left_bumper) {
+                if (false && gamepad.left_bumper) {
                     turn = 1;
                     leftTurn = true;
 
@@ -76,7 +76,7 @@ public class Wheels implements Mechanism {
                             targetedYaw -= 360;
                         }
                     }
-                } else if (gamepad.right_bumper) {
+                } else if (false && gamepad.right_bumper) {
                     turn = -1;
                     leftTurn = false;
 
@@ -127,8 +127,8 @@ public class Wheels implements Mechanism {
             leftBalance = leftBalanceValue;
         }
 
-        leftWheelsPower = forward - turn;
-        rightWheelsPower = forward + turn;
+        leftWheelsPower = forward + turn;
+        rightWheelsPower = forward - turn;
 
         leftWheelsPower *= precision;
         rightWheelsPower *= precision;

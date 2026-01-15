@@ -18,27 +18,17 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SO
 package org.firstinspires.ftc.teamcode.opmodes;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
-import java.io.File;
-import java.util.Scanner;
-import org.firstinspires.ftc.robotcore.external.Telemetry;
 import com.qualcomm.robotcore.hardware.Blinker;
 import com.qualcomm.robotcore.hardware.IMU;
-import com.qualcomm.robotcore.hardware.ColorSensor;
-import com.qualcomm.robotcore.hardware.Servo;
-import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
-import com.qualcomm.robotcore.eventloop.opmode.Disabled;
 import com.qualcomm.robotcore.hardware.DcMotor;
-import com.qualcomm.robotcore.hardware.DcMotorSimple;
+import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
-import org.firstinspires.ftc.teamcode.logging.LogReader;
 import org.firstinspires.ftc.teamcode.logging.RobotLogger;
 import org.firstinspires.ftc.teamcode.control.Mechanism;
 import org.firstinspires.ftc.teamcode.control.Wheels;
-import org.firstinspires.ftc.teamcode.control.Arms;
-import java.io.FileNotFoundException;
+import org.firstinspires.ftc.teamcode.control.Storage;
 
 /**
  * This file contains a minimal example of a Linear "OpMode". An OpMode is a 'program' that runs
@@ -57,7 +47,7 @@ public class BaseOpMode extends OpMode {
     private IMU imu;
     private ElapsedTime time;
     private Wheels wheels;
-    private Arms arms;
+    private Storage storage;
 
     private final boolean log;
     private String logFileDest;
@@ -88,16 +78,15 @@ public class BaseOpMode extends OpMode {
                 imu
         );
 
-        arms = new Arms(telemetry, time,
-                hardwareMap.get(DcMotor.class, "MotorBras1"),
-                hardwareMap.get(DcMotor.class, "MotorBras2"),
-                hardwareMap.get(Servo.class, "servoPince"),
-                hardwareMap.get(Servo.class, "servoTourniquet"),
+        storage = new Storage(telemetry, time,
+                hardwareMap.get(Servo.class, "servoCollector"),
+                hardwareMap.get(Servo.class, "servoDrum"),
+                hardwareMap.get(Servo.class, "servoLatch"),
                 imu
         );
 
         if (log) {
-            logger = new RobotLogger(time, new Mechanism[]{wheels, arms});
+            logger = new RobotLogger(time, new Mechanism[]{wheels, storage});
         }
 
         telemetry.addData("Status", "Initialized");
@@ -113,7 +102,6 @@ public class BaseOpMode extends OpMode {
     public void start() {
         time.reset();
         imu.resetYaw();
-        arms.resetEncoders();
     }
 
     @Override
@@ -136,15 +124,11 @@ public class BaseOpMode extends OpMode {
                 armBlock = !armBlock;
                 timer = timerValue;
             }
-            
-            if (this.gamepad2.left_trigger >= 0.3 && this.gamepad2.left_stick_button) {
-                arms.resetEncoders();
-            }
         }
 
         // moteur deplacement debut
         wheels.gamepadPower(gamepad1, precisionValues[precisionI]);
-        arms.gamepadPower(gamepad1, gamepad2, precisionValues[precisionI], armBlock);
+        storage.gamepadPower(gamepad1, gamepad2);
         // moteur deplacement fin
 
         if (timer > 0) {
@@ -166,7 +150,7 @@ public class BaseOpMode extends OpMode {
         }
 
         wheels.move();
-        arms.move();
+        storage.move();
         telemetry.update();
     }
 
