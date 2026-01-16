@@ -25,6 +25,7 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
+import org.firstinspires.ftc.teamcode.control.Launcher;
 import org.firstinspires.ftc.teamcode.logging.RobotLogger;
 import org.firstinspires.ftc.teamcode.control.Mechanism;
 import org.firstinspires.ftc.teamcode.control.Wheels;
@@ -48,6 +49,7 @@ public class BaseOpMode extends OpMode {
     private ElapsedTime time;
     private Wheels wheels;
     private Storage storage;
+    private Launcher launcher;
 
     private final boolean log;
     private String logFileDest;
@@ -80,13 +82,18 @@ public class BaseOpMode extends OpMode {
 
         storage = new Storage(telemetry, time,
                 hardwareMap.get(Servo.class, "servoCollector"),
-                hardwareMap.get(Servo.class, "servoDrum"),
+                hardwareMap.get(DcMotor.class, "MotorDrum"),
                 hardwareMap.get(Servo.class, "servoLatch"),
                 imu
         );
 
+        launcher = new Launcher(telemetry, time,
+                hardwareMap.get(DcMotor.class, "MotorLauncher"),
+                imu
+        );
+
         if (log) {
-            logger = new RobotLogger(time, new Mechanism[]{wheels, storage});
+            logger = new RobotLogger(time, new Mechanism[]{wheels, storage, launcher});
         }
 
         telemetry.addData("Status", "Initialized");
@@ -129,6 +136,7 @@ public class BaseOpMode extends OpMode {
         // moteur deplacement debut
         wheels.gamepadPower(gamepad1, precisionValues[precisionI]);
         storage.gamepadPower(gamepad1, gamepad2);
+        launcher.gamepadPower(gamepad1);
         // moteur deplacement fin
 
         if (timer > 0) {
@@ -151,6 +159,7 @@ public class BaseOpMode extends OpMode {
 
         wheels.move();
         storage.move();
+        launcher.move();
         telemetry.update();
     }
 

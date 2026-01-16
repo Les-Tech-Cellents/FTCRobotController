@@ -16,18 +16,20 @@ public class Storage implements Mechanism {
     private final Telemetry telemetry;
     private final ElapsedTime time;
     private final Servo collectorServo;
-    private final Servo drumServo;
+    private final DcMotor drumServo;
     private final Servo latchServo;
     private final IMU imu;
 
     public CollectorPosition collectorPosition = CollectorPosition.OPENED;
     public DrumPosition drumPosition = DrumPosition.FIRST_COLLECT;
+    public int drumIntPosition = drumPosition.position;
     public LatchPosition latchPosition = LatchPosition.CLOSED;
 
     public int drumPosIndex = 0;
     public boolean drumCollect = true;
     public DrumPosition[] drumCollectPositions = {DrumPosition.FIRST_COLLECT, DrumPosition.SECOND_COLLECT, DrumPosition.THIRD_COLLECT};
     public DrumPosition[] drumLaunchPositions = {DrumPosition.FIRST_LAUNCH, DrumPosition.SECOND_LAUNCH, DrumPosition.THIRD_LAUNCH};
+    public int drumTicksPer60deg = 50;
 
     public double timer = 0;
     public int    timerValue = 80;
@@ -72,13 +74,15 @@ public class Storage implements Mechanism {
      * @param collectorServo Le {@link Servo} du tourniquet
      * @param imu L'{@link IMU} du robot, dans l'OpMode
      */
-    public Storage(Telemetry telemetry, ElapsedTime time, Servo collectorServo, Servo drumServo, Servo latchServo, IMU imu) {
+    public Storage(Telemetry telemetry, ElapsedTime time, Servo collectorServo, DcMotor drumServo, Servo latchServo, IMU imu) {
         this.telemetry = telemetry;
         this.time = time;
         this.collectorServo = collectorServo;
         this.drumServo = drumServo;
         this.latchServo = latchServo;
         this.imu = imu;
+
+        drumServo.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     private void servosPower(Gamepad gamepad) {
@@ -91,32 +95,58 @@ public class Storage implements Mechanism {
             timer = timerValue;
         }
 
-        if (gamepad.left_trigger <= 0.4)
-            latchPosition = LatchPosition.OPENED;
-        else
-            latchPosition = LatchPosition.CLOSED;
-
-        if (gamepad.left_bumper) {
-            if (drumPosIndex == 0)
-                drumPosIndex = 2;
+        if (gamepad.dpad_right && timer == 0) {
+            if (latchPosition == LatchPosition.CLOSED)
+                latchPosition = LatchPosition.OPENED;
             else
-                drumPosIndex--;
-        } else if (gamepad.right_bumper) {
-            if (drumPosIndex == 2)
-                drumPosIndex = 0;
-            else
-                drumPosIndex++;
+                latchPosition = LatchPosition.CLOSED;
         }
 
-        if (gamepad.dpad_up)
-            drumCollect = false;
-        else if (gamepad.dpad_down)
-            drumCollect = true;
+        if (gamepad.dpad_left) {
+            if (gamepad.left_bumper) {
+                drumIntPosition --;
+            } else if (gamepad.right_bumper) {
+                drumIntPosition ++;
+            }
+        } else if (timer == 0){
+            /*if (drumIntPosition != drumPosition.position) {
+                drumServo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+            }
 
-        if (drumCollect)
-            drumPosition = drumCollectPositions[drumPosIndex];
-        else
-            drumPosition = drumLaunchPositions[drumPosIndex];
+            if (gamepad.left_bumper) {
+                if (drumPosIndex == 0)
+                    drumPosIndex = 2;
+                else
+                    drumPosIndex--;
+                timer = timerValue;
+            } else if (gamepad.right_bumper) {
+                if (drumPosIndex == 2)
+                    drumPosIndex = 0;
+                else
+                    drumPosIndex++;
+                timer = timerValue;
+            }
+
+            if (gamepad.dpad_up)
+                drumCollect = false;
+            else if (gamepad.dpad_down)
+                drumCollect = true;
+
+            if (drumCollect)
+                drumPosition = drumCollectPositions[drumPosIndex];
+            else
+                drumPosition = drumLaunchPositions[drumPosIndex];
+
+            drumIntPosition = drumPosition.position;*/
+
+            if (gamepad.left_bumper) {
+                drumIntPosition -= drumTicksPer60deg;
+                timer = timerValue;
+            } else if (gamepad.right_bumper) {
+                drumIntPosition += drumTicksPer60deg;
+                timer = timerValue;
+            }
+        }
     }
 
     /**
@@ -145,12 +175,19 @@ public class Storage implements Mechanism {
 
     public void move() {
         collectorServo.setPosition(collectorPosition.position);
-        drumServo.setPosition(drumPosition.position);
+        drumServo.setTargetPosition(drumIntPosition);
+        drumServo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        if (isAlmostExact(drumServo.getCurrentPosition(), drumIntPosition, 2)) {
+            drumServo.setPower(0);
+        } else {
+            drumServo.setPower(1);
+        }
         latchServo.setPosition(latchPosition.position);
 
         telemetry.addLine("### Mouvements stockage ###");
         telemetry.addData("Collector position", collectorPosition);
         telemetry.addData("Drum position", drumPosition);
+        telemetry.addData("Drum int pos", drumIntPosition);
         telemetry.addData("Latch position", latchPosition);
 
     }
@@ -170,35 +207,35 @@ public class Storage implements Mechanism {
     }
 
     public enum CollectorPosition {
-        CLOSED(1),
+        CLOSED(0.85),
         OPENED(0);
 
-        public final int position;
-        CollectorPosition(int position) {
+        public final double position;
+        CollectorPosition(double position) {
             this.position = position;
         }
     }
 
     public enum DrumPosition {
-        FIRST_COLLECT(1),
-        SECOND_COLLECT(0.5),
-        THIRD_COLLECT(0),
-        FIRST_LAUNCH(1),
-        SECOND_LAUNCH(0.5),
-        THIRD_LAUNCH(0);
+        FIRST_COLLECT(0),
+        SECOND_COLLECT(105),
+        THIRD_COLLECT(190),
+        FIRST_LAUNCH(120),
+        SECOND_LAUNCH(240),
+        THIRD_LAUNCH(330);
 
-        public final double position;
-        DrumPosition(double position) {
+        public final int position;
+        DrumPosition(int position) {
             this.position = position;
         }
     }
 
     public enum LatchPosition {
-        OPENED(0),
-        CLOSED(1);
+        CLOSED(0),
+        OPENED(0.45);
 
-        public final int position;
-        LatchPosition(int position) {
+        public final double position;
+        LatchPosition(double position) {
             this.position = position;
         }
     }

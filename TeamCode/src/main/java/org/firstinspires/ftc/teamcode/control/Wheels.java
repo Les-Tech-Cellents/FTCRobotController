@@ -2,6 +2,8 @@ package org.firstinspires.ftc.teamcode.control;
 
 import org.firstinspires.ftc.robotcore.external.Telemetry;
 import java.util.HashMap;
+import java.util.Objects;
+
 import com.qualcomm.robotcore.hardware.Gamepad;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -156,8 +158,8 @@ public class Wheels implements Mechanism {
     }
 
     public void setData(HashMap<String, String> data) {
-        leftWheelsPower = Double.parseDouble(data.get("leftWheelsPower"));
-        rightWheelsPower = Double.parseDouble(data.get("rightWheelsPower"));
+        leftWheelsPower = Double.parseDouble(Objects.requireNonNull(data.get("leftWheelsPower")));
+        rightWheelsPower = Double.parseDouble(Objects.requireNonNull(data.get("rightWheelsPower")));
     }
 
 }
