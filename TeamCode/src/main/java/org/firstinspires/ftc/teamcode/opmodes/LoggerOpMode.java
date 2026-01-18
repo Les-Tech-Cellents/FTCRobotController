@@ -7,6 +7,6 @@ import org.firstinspires.ftc.teamcode.opmodes.BaseOpMode;
 @TeleOp(name="Enregistreur")
 public class LoggerOpMode extends BaseOpMode {
     public LoggerOpMode() {
-        super(true, "2_specimen.txt");
+        super(true, "move_forward.txt");
     }
 }

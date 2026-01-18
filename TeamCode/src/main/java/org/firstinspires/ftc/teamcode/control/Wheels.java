@@ -22,6 +22,7 @@ public class Wheels implements Mechanism {
 
     public double leftWheelsPower = 0;
     public double rightWheelsPower = 0;
+    public boolean frontCollect = true;
     private double leftBalanceValue = 0.02;
 
     private int timer = 0;
@@ -92,6 +93,11 @@ public class Wheels implements Mechanism {
                         }
                     }
                 }
+
+                if (gamepad.dpad_right) {
+                    frontCollect = !frontCollect;
+                    timer = timerValue;
+                }
             }
         } else {
             if (timeStamp <= time.time() /*&& (angles.getYaw() >= targetedYaw -5 && angles.getYaw() <= targetedYaw +5)*/) {
@@ -125,8 +131,17 @@ public class Wheels implements Mechanism {
             leftBalance = leftBalanceValue;
         }
 
-        leftWheelsPower = forward + turn;
-        rightWheelsPower = forward - turn;
+        if (frontCollect) {
+            leftWheelsMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            rightWheelsMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+            leftWheelsPower = forward + turn;
+            rightWheelsPower = forward - turn;
+        } else {
+            leftWheelsMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+            rightWheelsMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+            leftWheelsPower = forward - turn;
+            rightWheelsPower = forward + turn;
+        }
 
         leftWheelsPower *= precision;
         rightWheelsPower *= precision;

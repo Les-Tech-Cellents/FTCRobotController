@@ -21,6 +21,9 @@ public class Launcher implements Mechanism {
 
     public double launcherMotorPower = 0;
     public double launchPower = 0.8;
+    public boolean launch = false;
+    private int timer = 0;
+    private final int timerValue = 100;
 
     public Launcher(Telemetry telemetry, ElapsedTime time, DcMotor launcherMotor, IMU imu) {
         this.telemetry = telemetry;
@@ -33,10 +36,16 @@ public class Launcher implements Mechanism {
     }
 
     public void gamepadPower(Gamepad gamepad) {
-        if (gamepad.right_trigger >= 0.4)
+        if (gamepad.right_trigger >= 0.4 && timer == 0) {
+            launch = !launch;
+            timer = timerValue;
+        }
+
+        if (launch)
             launcherMotorPower = launchPower;
         else
             launcherMotorPower = 0;
+
     }
 
     @Override
@@ -45,6 +54,9 @@ public class Launcher implements Mechanism {
 
         telemetry.addLine("### Launcher ###");
         telemetry.addData("Launcher power", launcherMotorPower);
+
+        if (timer > 0)
+            timer--;
     }
 
     @Override
@@ -56,6 +68,6 @@ public class Launcher implements Mechanism {
 
     @Override
     public void setData(HashMap<String, String> data) {
-        launcherMotorPower = Double.parseDouble(Objects.requireNonNull(data.get("launcherMotorPower")));
+        launcherMotorPower = Double.parseDouble(Objects.requireNonNull(data.get("launchMotorPower")));
     }
 }

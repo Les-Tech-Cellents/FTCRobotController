@@ -20,9 +20,10 @@ public class Storage implements Mechanism {
     private final Servo latchServo;
     private final IMU imu;
 
-    public CollectorPosition collectorPosition = CollectorPosition.OPENED;
+    public CollectorPosition collectorPosition = CollectorPosition.STOP;
     public DrumPosition drumPosition = DrumPosition.FIRST_COLLECT;
     public int drumIntPosition = drumPosition.position;
+    public int drumIntPositionNew = drumIntPosition;
     public LatchPosition latchPosition = LatchPosition.CLOSED;
 
     public int drumPosIndex = 0;
@@ -87,13 +88,12 @@ public class Storage implements Mechanism {
 
     private void servosPower(Gamepad gamepad) {
         if (timer == 0 && (gamepad.circle || gamepad.cross || gamepad.square || gamepad.triangle)) {
-            if (collectorPosition == CollectorPosition.CLOSED) {
-                collectorPosition = CollectorPosition.OPENED;
-            } else {
-                collectorPosition = CollectorPosition.CLOSED;
-            }
-            timer = timerValue;
+            collectorPosition = CollectorPosition.INTAKE;
+        } else {
+            collectorPosition = CollectorPosition.STOP;
         }
+
+        drumIntPositionNew = drumIntPosition;
 
         if (gamepad.dpad_right && timer == 0) {
             if (latchPosition == LatchPosition.CLOSED)
@@ -102,11 +102,15 @@ public class Storage implements Mechanism {
                 latchPosition = LatchPosition.CLOSED;
         }
 
+        if (gamepad.dpad_down) {
+            drumServo.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        }
+
         if (gamepad.dpad_left) {
             if (gamepad.left_bumper) {
-                drumIntPosition --;
+                drumIntPositionNew --;
             } else if (gamepad.right_bumper) {
-                drumIntPosition ++;
+                drumIntPositionNew ++;
             }
         } else if (timer == 0){
             /*if (drumIntPosition != drumPosition.position) {
@@ -140,10 +144,10 @@ public class Storage implements Mechanism {
             drumIntPosition = drumPosition.position;*/
 
             if (gamepad.left_bumper) {
-                drumIntPosition -= drumTicksPer60deg;
+                drumIntPositionNew -= drumTicksPer60deg;
                 timer = timerValue;
             } else if (gamepad.right_bumper) {
-                drumIntPosition += drumTicksPer60deg;
+                drumIntPositionNew += drumTicksPer60deg;
                 timer = timerValue;
             }
         }
@@ -174,6 +178,7 @@ public class Storage implements Mechanism {
     }
 
     public void move() {
+        drumIntPosition = drumIntPositionNew;
         collectorServo.setPosition(collectorPosition.position);
         drumServo.setTargetPosition(drumIntPosition);
         drumServo.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -195,20 +200,21 @@ public class Storage implements Mechanism {
     public HashMap<String, Object> getData() {
         return new HashMap<String, Object>() {{
             put("collectorPosition", collectorPosition);
-            put("drumPosition", drumPosition);
+            put("drumPosition", drumIntPositionNew - drumIntPosition);
             put("latchPosition", latchPosition);
         }};
     }
 
     public void setData(HashMap<String, String> data) {
         collectorPosition = CollectorPosition.valueOf(Objects.requireNonNull(data.get("collectorPosition")));
-        drumPosition = DrumPosition.valueOf(Objects.requireNonNull(data.get("drumPosition")));
+        drumIntPosition += Integer.parseInt(Objects.requireNonNull(data.get("drumPosition")));
         latchPosition = LatchPosition.valueOf(Objects.requireNonNull(data.get("latchPosition")));
     }
 
     public enum CollectorPosition {
-        CLOSED(0.85),
-        OPENED(0);
+        INTAKE(1),
+        STOP(0.5),
+        OUT(0);
 
         public final double position;
         CollectorPosition(double position) {
